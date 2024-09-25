@@ -1,7 +1,10 @@
 {
-  "name": "npm-bun-tsup-library",
-  "description": "My Library template",
+  "name": "glab-status",
+  "description": "GitLab CLI rich status display tool",
   "type": "module",
+  "bin": {
+    "glab-status": "dist/cli.cjs"
+  },
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -25,8 +28,11 @@
     "./package.json": "./package.json"
   },
   "keywords": [
-    "cool",
-    "package"
+    "gitlab",
+    "merge request",
+    "pipeline",
+    "status",
+    "cli"
   ],
   "devDependencies": {
     "@changesets/cli": "^2.26.2",
@@ -37,5 +43,9 @@
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "date-fns": "4.1.0",
+    "picocolors": "1.1.0"
+  }
 }

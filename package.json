@@ -11,7 +11,7 @@
   "scripts": {
     "build": "tsup",
     "test": "echo 'Not defined' || exit 1",
-    "ci:version": "changeset version && bun install --no-frozen-lockfile",
+    "ci:version": "changeset version && npm ci",
     "ci:publish": "changeset publish"
   },
   "exports": {

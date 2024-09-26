@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 import colors from "picocolors";
 import { Git } from "./git";
 import { GitLab } from "./gitlab";

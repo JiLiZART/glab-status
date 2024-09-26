@@ -4,7 +4,7 @@
   "description": "GitLab CLI rich status display tool",
   "type": "module",
   "bin": {
-    "glab-status": "dist/cli.cjs"
+    "glab-status": "dist/cli.mjs"
   },
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",

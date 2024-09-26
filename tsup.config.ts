@@ -2,13 +2,13 @@ import { defineConfig } from "tsup";
 
 export default defineConfig(() => ({
   entry: ["src/index.ts", "src/cli.ts"],
-  format: ["cjs", "esm"],
+  format: ["esm"],
   external: [],
   splitting: false,
   clean: true,
   cjsInterop: true,
   dts: true,
-  target: ["node18"],
+  target: ["node20"],
   shims: true,
   tsconfig: "./tsconfig.json",
   outExtension({ format }) {

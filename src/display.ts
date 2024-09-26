@@ -1,5 +1,8 @@
 import colors from "picocolors";
-import { parseISO, formatRelative } from "date-fns";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime"; // ES 2015
+
+dayjs.extend(relativeTime);
 
 export class Display {
   rows: string[] = [];
@@ -37,9 +40,7 @@ export class DisplayMergeRequest extends Display {
     web_url: string;
   }) {
     const mrid = colors.red(`#${mr.iid}`);
-    const date = colors.green(
-      `(${formatRelative(parseISO(mr.merged_at), new Date())})`
-    );
+    const date = colors.green(`(${dayjs(mr.merged_at).fromNow()})`);
     const statusEmojis = {
       opened: colors.greenBright("✅ Opened"),
       closed: colors.redBright("❌ Closed"),
@@ -83,9 +84,7 @@ export class DisplayCommit extends Display {
   ) {
     const sha = colors.red(`${commit.short_id}`);
     const author = colors.blueBright(`<${commit.author_name}>`);
-    const date = colors.green(
-      `(${formatRelative(parseISO(commit.created_at), new Date())})`
-    );
+    const date = colors.green(`(${dayjs(commit.created_at).fromNow()})`);
     const title = colors.whiteBright(commit.title);
 
     super([

@@ -1,3 +1,11 @@
+export type GitLabProjectDTO = {
+  id: string;
+  name: string;
+  ssh_url_to_repo: string;
+  http_url_to_repo: string;
+  web_url: string;
+};
+
 export class GitlabProject {
   GITLAB_API_PIPELINES_URL = `/projects/:id/pipelines`;
   GITLAB_API_PIPELINE_JOBS_URL = `/projects/:id/pipelines/:pipeline_id/jobs`;
@@ -5,12 +13,9 @@ export class GitlabProject {
   GITLAB_API_PROJECT_MRS_URL = `/projects/:id/merge_requests`;
   GITLAB_API_ENVS_URL = `/projects/:id/environments`;
 
-  constructor(gitlab, projectId) {
-    this.gitlab = gitlab;
-    this.projectId = projectId;
-  }
+  constructor(public gitlab: GitLab, public projectId: string) {}
 
-  async commitBy(sha) {
+  async commitBy(sha: string) {
     return this.gitlab._get(
       this.GITLAB_API_COMMIT_URL.replace(":id", this.projectId).replace(
         ":sha",
@@ -19,7 +24,7 @@ export class GitlabProject {
     );
   }
 
-  async pipelineBy(branch) {
+  async pipelineBy(branch: string) {
     return this.gitlab
       ._get(this.GITLAB_API_PIPELINES_URL.replace(":id", this.projectId), {
         ref: branch,
@@ -28,7 +33,7 @@ export class GitlabProject {
       .then((pipelines) => pipelines[0]);
   }
 
-  async mergeRequestBy(branch) {
+  async mergeRequestBy(branch: string) {
     return this.gitlab
       ._get(this.GITLAB_API_PROJECT_MRS_URL.replace(":id", this.projectId), {
         source_branch: branch,
@@ -36,7 +41,7 @@ export class GitlabProject {
       .then((mrs) => mrs[0]);
   }
 
-  async environmentsBy(branch) {
+  async environmentsBy(branch: string) {
     return this.gitlab
       ._get(this.GITLAB_API_ENVS_URL.replace(":id", this.projectId), {
         search: branch,
@@ -44,7 +49,7 @@ export class GitlabProject {
       .then((envs) => envs[0]);
   }
 
-  async pipelineJobsBy(pipelineId) {
+  async pipelineJobsBy(pipelineId: string) {
     return this.gitlab._get(
       this.GITLAB_API_PIPELINE_JOBS_URL.replace(":id", this.projectId).replace(
         ":pipeline_id",
@@ -58,26 +63,23 @@ export class GitLab {
   BASE_URL = "https://gitlab.com/api/v4";
   GITLAB_API_PROJECTS_URL = `/projects`;
 
-  constructor(token) {
-    this.token = token;
-  }
+  constructor(public token: string) {}
 
-  async _get(url, params = {}) {
+  async _get(url: string, params = {}) {
     return fetch(
       `${this.BASE_URL}${url}?${new URLSearchParams(params).toString()}`,
       {
         headers: { "Private-Token": this.token },
-        params,
       }
     ).then((res) => res.json());
   }
 
-  async projectsByName(name) {
+  async projectsByName(name: string) {
     return this._get(this.GITLAB_API_PROJECTS_URL, {
       search: name,
       per_page: 100,
     }).then((projects) =>
-      projects.map((item) => ({
+      projects.map((item: GitLabProjectDTO) => ({
         id: item.id,
         name: item.name,
         ssh_url_to_repo: item.ssh_url_to_repo,
@@ -87,8 +89,8 @@ export class GitLab {
     );
   }
 
-  async myProjectsByName(name) {
-    const filterProjects = (projects, name) =>
+  async myProjectsByName(name: string) {
+    const filterProjects = (projects: GitLabProjectDTO[], name: string) =>
       projects.filter(
         (project) =>
           project.ssh_url_to_repo.includes(name) ||

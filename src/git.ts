@@ -2,11 +2,14 @@ import { exec } from "node:child_process";
 import { promisify } from "node:util";
 import process from "node:process";
 
-const $ = (...args: Parameters<typeof exec>) => {
+const $ = async (...args: Parameters<typeof exec>) => {
   const e = promisify(exec);
 
-  return e(args[0], args[1]).then(({ stdout }) => stdout.toString().trim());
+  const { stdout } = await e(args[0], args[1]);
+
+  return stdout.toString().trim();
 };
+
 export class Git {
   cwd: string;
 

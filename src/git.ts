@@ -1,4 +1,14 @@
-import { $ } from "bun";
+import { exec } from "node:child_process";
+import { promisify } from "node:util";
+import process from "node:process";
+
+const $ = async (...args: Parameters<typeof exec>) => {
+  const e = promisify(exec);
+
+  const { stdout } = await e(args[0], args[1]);
+
+  return stdout.toString().trim();
+};
 
 export class Git {
   cwd: string;
@@ -8,15 +18,15 @@ export class Git {
   }
 
   async branch() {
-    const stdout = await $`git rev-parse --abbrev-ref HEAD`
-      .cwd(this.cwd)
-      .text();
+    const stdout = await $(`git rev-parse --abbrev-ref HEAD`, {
+      cwd: this.cwd,
+    });
 
     return stdout.trim();
   }
 
   async remoteUrl() {
-    const stdout = await $`git ls-remote --get-url`.cwd(this.cwd).text();
+    const stdout = await $("git ls-remote --get-url", { cwd: this.cwd });
 
     return stdout
       .trim()
@@ -28,6 +38,6 @@ export class Git {
   async repoName() {
     const projectName = (remoteUrl: string) => remoteUrl.split("/").pop();
 
-    return projectName(await this.remoteUrl());
+    return projectName(await this.remoteUrl())!;
   }
 }

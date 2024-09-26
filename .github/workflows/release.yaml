@@ -21,14 +21,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: oven-sh/setup-bun@v1
-      - run: bun install
-      - run: bun run build
+      - uses: actions/setup-node@v4
+      - run: npm install --force
+      - run: npm run build
       - uses: changesets/action@v1
         if: ${{ github.event_name != 'pull_request' }}
         with:
-          version: bun run ci:version
-          publish: bun run ci:publish
+          version: npm run ci:version
+          publish: npm run ci:publish
           commit: "[ci] release"
           title: "[ci] release"
         env:

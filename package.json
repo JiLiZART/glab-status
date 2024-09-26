@@ -11,7 +11,7 @@
   "scripts": {
     "build": "tsup",
     "test": "echo 'Not defined' || exit 1",
-    "ci:version": "changeset version && npm ci",
+    "ci:version": "changeset version && npm ci --force",
     "ci:publish": "changeset publish"
   },
   "exports": {

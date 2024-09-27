@@ -22,39 +22,47 @@ export class Display {
 }
 
 export class DisplayEnvironment extends Display {
-  constructor(environment: { external_url: string }) {
-    super([
-      colors.bold("Environment"),
-      `> ${colors.blue(environment.external_url)}`,
-      "",
-    ]);
+  constructor(environment?: { external_url: string }) {
+    if (environment) {
+      super([
+        colors.bold("Environment"),
+        `> ${colors.blue(environment.external_url)}`,
+        "",
+      ]);
+    }
+
+    super();
   }
 }
 
 export class DisplayMergeRequest extends Display {
-  constructor(mr: {
+  constructor(mr?: {
     merged_at: string;
     state: string;
     title: string;
     iid: string;
     web_url: string;
   }) {
-    const mrid = colors.red(`#${mr.iid}`);
-    const date = colors.green(`(${dayjs(mr.merged_at).fromNow()})`);
-    const statusEmojis = {
-      opened: colors.greenBright("✅ Opened"),
-      closed: colors.redBright("❌ Closed"),
-      merged: colors.greenBright("✅ Merged"),
-    } as Record<string, string>;
+    if (mr) {
+      const mrid = colors.red(`#${mr.iid}`);
+      const date = colors.green(`(${dayjs(mr.merged_at).fromNow()})`);
+      const statusEmojis = {
+        opened: colors.greenBright("✅ Opened"),
+        closed: colors.redBright("❌ Closed"),
+        merged: colors.greenBright("✅ Merged"),
+      } as Record<string, string>;
 
-    const status = statusEmojis[mr.state] || "";
+      const status = statusEmojis[mr.state] || "";
 
-    super([
-      colors.bold("Merge Request"),
-      `${mrid} - ${mr.title} - ${status} ${date}`,
-      `> ${colors.blue(mr.web_url)}`,
-      "",
-    ]);
+      super([
+        colors.bold("Merge Request"),
+        `${mrid} - ${mr.title} - ${status} ${date}`,
+        `> ${colors.blue(mr.web_url)}`,
+        "",
+      ]);
+    } else {
+      super([]);
+    }
   }
 }
 

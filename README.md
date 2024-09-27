@@ -10,6 +10,10 @@ For given repository directory, it will display the following information:
 - Environment
 - Pipeline Jobs
 
+<p align="center">
+  <img alt="GitLab Status Preview" src="https://github.com/JiLiZART/glab-status/blob/main/.github/screenshot.png?raw=true" />
+</p>
+
 ## Usage
 
 ```bash

@@ -23,7 +23,7 @@ async function main() {
   try {
     const git = new Git();
     const repoName = await git.repoName().catch(() => {
-      console.warn("Failed getting repository name");
+      console.warn("Failed getting remote url");
       console.warn("It seems that you are not in a Git repository.");
       process.exit(1);
     });
@@ -33,32 +33,28 @@ async function main() {
     });
 
     const gitlab = new GitLab(process.env.GITLAB_TOKEN);
-    const myProjects = await gitlab.myProjectsByName(repoName);
+    const project = await gitlab.projectByUrl(repoName);
 
-    if (myProjects.length === 0) {
+    if (!project) {
       const name = colors.bold(repoName);
       const branchName = colors.bold(branch);
 
       console.warn(
-        `Trying to find projects for ${name} on branch ${branchName}`
+        `Trying to find project for ${name} on branch ${branchName}`
       );
-      console.warn("No Gitlab projects found for this repository.");
+      console.warn("No Gitlab project found for this repository.");
       process.exit(0);
     }
 
-    for (const project of myProjects) {
-      const pipeline = await project.pipelineBy(branch);
+    const pipeline = await project.pipelineBy(branch);
 
-      if (pipeline) {
-        new Display(
-          new DisplayCommit(await project.commitBy(pipeline.sha), pipeline),
-          new DisplayMergeRequest(await project.mergeRequestBy(branch)),
-          new DisplayEnvironment(await project.environmentsBy(branch)),
-          new DisplayPipelineJobs(await project.pipelineJobsBy(pipeline.id))
-        );
-      } else {
-        console.error("No pipelines found for this project.");
-      }
+    if (pipeline) {
+      new Display(
+        new DisplayCommit(await project.commitBy(pipeline.sha), pipeline),
+        new DisplayMergeRequest(await project.mergeRequestBy(branch)),
+        new DisplayEnvironment(await project.environmentsBy(branch)),
+        new DisplayPipelineJobs(await project.pipelineJobsBy(pipeline.id))
+      );
     }
   } catch (error: unknown) {
     if (error instanceof Error) {

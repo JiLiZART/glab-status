@@ -1,6 +1,7 @@
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
 import process from "node:process";
+import url from "node:url";
 
 const $ = async (...args: Parameters<typeof exec>) => {
   const e = promisify(exec);
@@ -36,7 +37,11 @@ export class Git {
   }
 
   async repoName() {
-    const projectName = (remoteUrl: string) => remoteUrl.split("/").pop();
+    const projectName = (remoteUrl: string) => {
+      const project = url.parse(remoteUrl).pathname?.slice(1);
+
+      return project;
+    };
 
     return projectName(await this.remoteUrl())!;
   }

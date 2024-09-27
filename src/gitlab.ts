@@ -4,6 +4,7 @@ export type GitLabProjectDTO = {
   ssh_url_to_repo: string;
   http_url_to_repo: string;
   web_url: string;
+  default_branch: string;
 };
 
 export class GitlabProject {
@@ -13,7 +14,11 @@ export class GitlabProject {
   GITLAB_API_PROJECT_MRS_URL = `/projects/:id/merge_requests`;
   GITLAB_API_ENVS_URL = `/projects/:id/environments`;
 
-  constructor(public gitlab: GitLab, public projectId: string) {}
+  constructor(
+    public gitlab: GitLab,
+    public projectId: string,
+    public defaultBranch: string
+  ) {}
 
   async commitBy(sha: string) {
     return this.gitlab._get(
@@ -34,9 +39,14 @@ export class GitlabProject {
   }
 
   async mergeRequestBy(branch: string) {
+    if (branch === this.defaultBranch) {
+      return null;
+    }
+
     return this.gitlab
       ._get(this.GITLAB_API_PROJECT_MRS_URL.replace(":id", this.projectId), {
         source_branch: branch,
+        target_branch: this.defaultBranch,
       })
       .then((mrs) => mrs[0]);
   }
@@ -61,44 +71,25 @@ export class GitlabProject {
 
 export class GitLab {
   BASE_URL = "https://gitlab.com/api/v4";
-  GITLAB_API_PROJECTS_URL = `/projects`;
+  GITLAB_API_PROJECT_URL = `/projects/:url`;
 
   constructor(public token: string) {}
 
   async _get(url: string, params = {}) {
-    return fetch(
-      `${this.BASE_URL}${url}?${new URLSearchParams(params).toString()}`,
-      {
-        headers: { "Private-Token": this.token },
-      }
-    ).then((res) => res.json());
+    const query = new URLSearchParams(params || {}).toString();
+
+    return fetch(`${this.BASE_URL}${url}?${query}`, {
+      headers: { "Private-Token": this.token },
+    }).then((res) => res.json());
   }
 
-  async projectsByName(name: string) {
-    return this._get(this.GITLAB_API_PROJECTS_URL, {
-      search: name,
-      per_page: 100,
-    }).then((projects) =>
-      projects.map((item: GitLabProjectDTO) => ({
-        id: item.id,
-        name: item.name,
-        ssh_url_to_repo: item.ssh_url_to_repo,
-        http_url_to_repo: item.http_url_to_repo,
-        web_url: item.web_url,
-      }))
-    );
-  }
-
-  async myProjectsByName(name: string) {
-    const filterProjects = (projects: GitLabProjectDTO[], name: string) =>
-      projects.filter(
-        (project) =>
-          project.ssh_url_to_repo.includes(name) ||
-          project.http_url_to_repo.includes(name)
-      );
-
-    return filterProjects(await this.projectsByName(name), name).map(
-      (project) => new GitlabProject(this, project.id)
-    );
+  async projectByUrl(url: string) {
+    return this._get(
+      this.GITLAB_API_PROJECT_URL.replace(":url", encodeURIComponent(url))
+    ).then((item: GitLabProjectDTO) => {
+      return item?.id
+        ? new GitlabProject(this, item.id, item.default_branch)
+        : null;
+    });
   }
 }

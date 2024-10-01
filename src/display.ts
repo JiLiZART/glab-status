@@ -29,9 +29,9 @@ export class DisplayEnvironment extends Display {
         `> ${colors.blue(environment.external_url)}`,
         "",
       ]);
+    } else {
+      super();
     }
-
-    super();
   }
 }
 

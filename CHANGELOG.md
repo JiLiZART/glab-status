@@ -1,5 +1,12 @@
 # glab-status
 
+## 1.0.3
+
+### Patch Changes
+
+- 87c5592: Fixes problem with display environment url that causes error "Super constructor may only be called once"
+  Fixes problem with custom hostname like `gitlab.company.com`
+
 ## 1.0.2
 
 ### Patch Changes

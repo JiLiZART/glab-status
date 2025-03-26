@@ -26,6 +26,14 @@ export class Git {
     return stdout.trim();
   }
 
+  async sha() {
+    const stdout = await $(`git rev-parse HEAD`, {
+      cwd: this.cwd,
+    });
+
+    return stdout.trim();
+  }
+
   async remoteUrl() {
     const stdout = await $("git ls-remote --get-url", { cwd: this.cwd });
 
@@ -34,6 +42,10 @@ export class Git {
       .replace(/^git@(.*?):/, "https://$1/")
       .replace(/[A-z0-9\-]+@/, "")
       .replace(/\.git$/, "");
+  }
+
+  async hostname() {
+    return new URL(await this.remoteUrl()).hostname
   }
 
   async repoName() {

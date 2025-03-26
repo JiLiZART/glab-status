@@ -22,15 +22,19 @@ export class Display {
 }
 
 export class DisplayEnvironment extends Display {
-  constructor(environment?: { external_url: string }) {
-    if (environment) {
+  constructor(environment?: { external_url: string | null }) {
+    if (environment?.external_url) {
       super([
         colors.bold("Environment"),
         `> ${colors.blue(environment.external_url)}`,
         "",
       ]);
     } else {
-      super();
+      super([
+        colors.bold("Environment"),
+        'no environment url found',
+        "",
+      ]);
     }
   }
 }
@@ -61,7 +65,11 @@ export class DisplayMergeRequest extends Display {
         "",
       ]);
     } else {
-      super([]);
+      super([
+        colors.bold("Merge Request"),
+        'no merge request found',
+        "",
+      ]);
     }
   }
 }
@@ -88,21 +96,29 @@ export class DisplayCommit extends Display {
       title: string;
       author_name: string;
     },
-    pipeline: { status: string; web_url: string }
+    pipeline: { status: string; web_url: string } | null
   ) {
     const sha = colors.red(`${commit.short_id}`);
     const author = colors.blueBright(`<${commit.author_name}>`);
     const date = colors.green(`(${dayjs(commit.created_at).fromNow()})`);
     const title = colors.whiteBright(commit.title);
 
-    super([
-      colors.bold("Commit"),
-      `${sha} - ${title} ${date} ${author} - ${
-        DisplayCommit.statusEmojis[pipeline.status]
-      }`,
-      `> ${colors.blue(pipeline.web_url)}`,
-      "",
-    ]);
+    if (pipeline) {
+      super([
+        colors.bold("Commit"),
+        `${sha} - ${title} ${date} ${author} - ${
+            DisplayCommit.statusEmojis[pipeline.status]
+        }`,
+        `> ${colors.blue(pipeline.web_url)}`,
+        "",
+      ]);
+    } else {
+      super([
+        colors.bold("Commit"),
+        `${sha} - ${title} ${date} ${author}`,
+        "",
+      ]);
+    }
   }
 }
 
@@ -133,26 +149,29 @@ export class DisplayPipelineJobs extends Display {
         return acc;
       }, {} as Record<string, PipelineJob[]>);
 
-    super(
-      Object.entries(stages)
+    const stageLabels = Object.entries(stages)
         .map(([stage, stages]) => {
           return [
             colors.bold(stage),
             stages
-              .map((stage) => {
-                const secs = colors.gray(`(${Math.round(stage.duration)}s)`);
-                const status =
-                  DisplayPipelineJobs.statusMap[stage.status] ||
-                  stage.status ||
-                  "";
+                .map((stage) => {
+                  const secs = stage.duration ? colors.gray(`(${Math.round(stage.duration)}s)`) : '';
+                  const status =
+                      DisplayPipelineJobs.statusMap[stage.status] ||
+                      stage.status ||
+                      "";
 
-                return String(`${status} ${stage.name} ${secs}`).trim();
-              })
-              .join(" "),
+                  return String(`${status} ${stage.name} ${secs}`).trim();
+                })
+                .join(" "),
             "",
           ].flat();
         })
         .flat()
-    );
+
+    super([
+      colors.bold("Pipeline Jobs"),
+      ...stageLabels,
+    ]);
   }
 }

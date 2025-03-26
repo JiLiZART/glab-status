@@ -11,19 +11,25 @@ import {
 } from "./display";
 
 async function main() {
+  const git = new Git();
+  const hostname = await git.hostname().catch(() => {
+    console.warn("Failed getting remote url");
+    console.warn("It seems that you are not in a Git repository.");
+    process.exit(1);
+  })
+
   if (!process.env.GITLAB_TOKEN) {
     console.error("Please set the GITLAB_TOKEN environment variable.");
     console.error("You can generate a new token here:");
     console.error(
-      colors.blue("> https://gitlab.com/-/user_settings/personal_access_tokens")
+      colors.blue(`> https://${hostname}/-/user_settings/personal_access_tokens`)
     );
     process.exit(1);
   }
 
   try {
-    const git = new Git();
     const repoName = await git.repoName().catch(() => {
-      console.warn("Failed getting remote url");
+      console.warn("Failed getting repository name url");
       console.warn("It seems that you are not in a Git repository.");
       process.exit(1);
     });
@@ -31,8 +37,7 @@ async function main() {
       console.warn("Failed getting branch name");
       process.exit(1);
     });
-
-    const gitlab = new GitLab(process.env.GITLAB_TOKEN);
+    const gitlab = new GitLab(process.env.GITLAB_TOKEN, hostname);
     const project = await gitlab.projectByUrl(repoName);
 
     if (!project) {
@@ -48,19 +53,18 @@ async function main() {
 
     const pipeline = await project.pipelineBy(branch);
 
-    if (pipeline) {
-      new Display(
-        new DisplayCommit(await project.commitBy(pipeline.sha), pipeline),
+    new Display(
+        pipeline && new DisplayCommit(await project.commitBy(pipeline.sha), pipeline),
         new DisplayMergeRequest(await project.mergeRequestBy(branch)),
         new DisplayEnvironment(await project.environmentsBy(branch)),
-        new DisplayPipelineJobs(await project.pipelineJobsBy(pipeline.id))
-      );
-    }
+        pipeline && new DisplayPipelineJobs(await project.pipelineJobsBy(pipeline.id))
+    );
   } catch (error: unknown) {
     if (error instanceof Error) {
-      console.error("Error fetching pipeline status:", error.message);
+      console.error("Error fetching gitlab status:", error.message);
+    } else {
+      console.error(error);
     }
-    console.error(error);
   }
 }
 

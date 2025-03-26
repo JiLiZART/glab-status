@@ -1,3 +1,9 @@
+import { tryJSONparse } from "./util.ts";
+
+const isDebug = process.env.DEBUG === "glab-status";
+
+const log = isDebug ? console.debug.bind(console, "[gitlab]") : function () {};
+
 export type GitLabProjectDTO = {
   id: string;
   name: string;
@@ -35,7 +41,7 @@ export class GitlabProject {
         ref: branch,
         per_page: 1,
       })
-      .then((pipelines) => pipelines[0]);
+      .then((pipelines) => pipelines?.length  ? pipelines[0] : null);
   }
 
   async mergeRequestBy(branch: string) {
@@ -70,17 +76,36 @@ export class GitlabProject {
 }
 
 export class GitLab {
-  BASE_URL = "https://gitlab.com/api/v4";
-  GITLAB_API_PROJECT_URL = `/projects/:url`;
+  // API_PREFIX = "https://gitlab.com/api/v4";
+  GITLAB_API_PROJECT_URL = `projects/:url`;
 
-  constructor(public token: string) {}
+  constructor(public token: string, public hostname: string) {}
 
   async _get(url: string, params = {}) {
     const query = new URLSearchParams(params || {}).toString();
+    const fetchUrl = `https://${this.hostname}/api/v4/${url}?${query}`
 
-    return fetch(`${this.BASE_URL}${url}?${query}`, {
+    log(`GET ${fetchUrl}`);
+
+    return fetch(fetchUrl, {
       headers: { "Private-Token": this.token },
-    }).then((res) => res.json());
+    }).then(async (res) => {
+      if (res.ok) {
+        const json = await res.json();
+
+        log(`GET ${fetchUrl} success`, json);
+
+        return json;
+      }
+
+      const text = await res.text()
+      const json = tryJSONparse(text);
+      const message = json?.message || text;
+
+      log(`GET ${fetchUrl} error`, message);
+
+      return Promise.reject(new Error(message));
+    });
   }
 
   async projectByUrl(url: string) {
